@@ -459,7 +459,7 @@ Resources:
             02_Create_universe:
               command: !Sub |
                 bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} 3 ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
-            03_Create_universe:
+            03_Run_initdb:
               command: bash /home/ec2-user/init_ysql.sh    
     Properties:
       ImageId: !Ref LatestAmiId

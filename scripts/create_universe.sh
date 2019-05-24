@@ -104,9 +104,10 @@ echo "--placement_zone=${INSTANCE_ZONE}" >> ${YB_HOME}/tserver/conf/server.conf
 ###############################################################################
 # Setup YSQL proxies across all nodes
 ###############################################################################
+NODEIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
 echo "Enabling YSQL..."
 echo '--start_pgsql_proxy' >> ${YB_HOME}/tserver/conf/server.conf
-echo "--pgsql_proxy_bind_address=${YB_MASTER_ADDRESSES[0]}:5433" >> ${YB_HOME}/tserver/conf/server.conf
+echo "--pgsql_proxy_bind_address=${NODEIP}:5433" >> ${YB_HOME}/tserver/conf/server.conf
 
 
 ###############################################################################
