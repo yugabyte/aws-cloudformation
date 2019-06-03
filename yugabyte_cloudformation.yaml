@@ -1,26 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Simple deploment of YugaByte DB cluster in multi AZ (default avability zone is 3 and replication fator is also 3)"
+Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default availability zone is 3 and replication factor is also 3)"
 
 Parameters: 
   DBVersion:
     Description: YugaByte DB version Default version is 1.2.8.0
     Type: String
     Default: "1.2.8.0"
-  YugaByteEdition:
-    Description: Edition of YugaByte DB to install, Default is 'ce'
-    Type: String
-    Default: "ce"
-  DownloadURL:  
-    Description: The download location of the YugaByteDB edition
-    Type: String
-    Default: "https://downloads.yugabyte.com"
-  VPCName:
-    Description: The name of the VPC being created.
-    Type: String
-    Default: YugaByte
-  LatestAmiId:
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
   KeyName:
     Description: 'Name of Key which is required for ssh to YugaByte DB node'
     Type: "AWS::EC2::KeyPair::KeyName"
@@ -28,9 +13,12 @@ Parameters:
   InstanceType:
     Description: 'Type of Instance for YugaByte DB cluster node'
     Type: "String"
-    Default: "t2.micro"
-    AllowedValues: ["c5.xlarge", "c5.2xlarge", "t2.micro"]
+    Default: "c5.xlarge"
+    AllowedValues: ["c5.xlarge", "c5.2xlarge"]
     ConstraintDescription: "must be a valid EC2 instance type."
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
 
 Mappings: 
   SubnetConfig:
@@ -42,6 +30,12 @@ Mappings:
       CIDR: "10.0.1.0/24"
     Public2:
       CIDR: "10.0.2.0/24"
+  YugaByteConfig:
+    Edition: 
+      Value: "ce"
+    Download:
+      URL: "https://downloads.yugabyte.com"
+
 
 Resources:
   VPC:
@@ -59,7 +53,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Ref VPCName
+          Value: !Ref "AWS::StackName"
   
   PublicSubnet0:
     Type: 'AWS::EC2::Subnet'
@@ -81,7 +75,7 @@ Resources:
         - Key: Name
           Value: !Join 
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - '-public-0'
   PublicSubnet1:
     Type: 'AWS::EC2::Subnet'
@@ -103,7 +97,7 @@ Resources:
         - Key: Name
           Value: !Join 
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - '-public-1'
   PublicSubnet2:
     Type: 'AWS::EC2::Subnet'
@@ -125,7 +119,7 @@ Resources:
         - Key: Name
           Value: !Join 
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - '-public-2'
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
@@ -138,7 +132,7 @@ Resources:
         - Key: Name
           Value: !Join 
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - '-IGW'
   GatewayToInternet:
     Type: 'AWS::EC2::VPCGatewayAttachment'
@@ -157,7 +151,7 @@ Resources:
         - Key: Name
           Value: !Join 
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - '-public-route-table'
   PublicRoute:
     Type: 'AWS::EC2::Route'
@@ -206,10 +200,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 9000
           ToPort: 9000
-          CidrIp: !FindInMap
-            - SubnetConfig
-            - VPC
-            - CIDR
+          CidrIp: "0.0.0.0/0"
         - IpProtocol: tcp
           FromPort: 9100
           ToPort: 9100
@@ -305,7 +296,7 @@ Resources:
               group: ec2-user    
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !Ref YugaByteEdition !Ref DBVersion !Ref DownloadURL
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub |
                 bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} 3 ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
@@ -320,7 +311,7 @@ Resources:
         - Key: "Name"
           Value: !Join
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - 'Node-0'
       UserData:
         Fn::Base64:
@@ -377,7 +368,7 @@ Resources:
               group: ec2-user 
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !Ref YugaByteEdition !Ref DBVersion !Ref DownloadURL
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub |
                 bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} 3 ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
@@ -392,7 +383,7 @@ Resources:
         - Key: "Name"
           Value: !Join
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - 'Node-1'
       UserData:
         Fn::Base64:
@@ -455,7 +446,7 @@ Resources:
               group: ec2-user     
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !Ref YugaByteEdition !Ref DBVersion !Ref DownloadURL
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub |
                 bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} 3 ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
@@ -472,7 +463,7 @@ Resources:
         - Key: "Name"
           Value: !Join
             - ''
-            - - !Ref VPCName
+            - - !Ref "AWS::StackName"
               - 'Node-2'
       UserData:
         Fn::Base64:
