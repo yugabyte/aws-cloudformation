@@ -3,7 +3,7 @@ Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default avai
 
 Parameters: 
   DBVersion:
-    Description: YugaByte DB version Default version is 1.2.8.0
+    Description: Default YugaByte DB version is 1.2.8.0
     Type: String
     Default: "1.2.8.0"
   RFFactor:
@@ -279,22 +279,22 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user        
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user    
@@ -352,22 +352,22 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user    
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user 
@@ -426,27 +426,27 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user        
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user 
             /home/ec2-user/init_ysql.sh:
-              source: "https://raw.githubusercontent.com/vp15591/yugabytedb-cloudformation/master/scripts/init_ysql.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/init_ysql.sh"
               mode: '0755'
               owner: ec2-user
               group: ec2-user     
