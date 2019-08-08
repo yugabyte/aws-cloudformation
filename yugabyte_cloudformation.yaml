@@ -5,7 +5,7 @@ Parameters:
   DBVersion:
     Description: Default YugaByte DB version is 1.2.8.0
     Type: String
-    Default: "1.2.8.0"
+    Default: "1.3.0.0"
   RFFactor:
     Description: Replication factor to create YugaByte DB cluster by defult it is set to 3.
     Type: String
@@ -36,7 +36,7 @@ Mappings:
       CIDR: "10.0.2.0/24"
   YugaByteConfig:
     Edition: 
-      Value: "ce"
+      Value: "YB"
     Download:
       URL: "https://downloads.yugabyte.com"
 
@@ -456,9 +456,7 @@ Resources:
             02_Create_universe:
               command: !Sub 
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
-                - { RF: !Ref RFFactor }
-            03_Run_initdb:
-              command: bash /home/ec2-user/init_ysql.sh    
+                - { RF: !Ref RFFactor }    
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
