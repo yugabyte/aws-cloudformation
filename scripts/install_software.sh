@@ -9,7 +9,7 @@
 YB_HOME=/home/ec2-user/yugabyte-db
 
 YB_VERSION=$1
-if [[ "${YB_VERSION}" < "1.3.0.0" ]]; then
+if [[ "${YB_VERSION}" < 1.3.0.0 ]]; then
    YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-ce-${YB_VERSION}-linux.tar.gz"
 else
    YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-${YB_VERSION}-linux.tar.gz"
