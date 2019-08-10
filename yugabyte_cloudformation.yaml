@@ -3,9 +3,9 @@ Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default avai
 
 Parameters: 
   DBVersion:
-    Description: Default YugaByte DB version is 1.2.8.0
+    Description: Default YugaByte DB version is 1.3.0.0
     Type: String
-    Default: "1.2.8.0"
+    Default: "1.3.0.0"
   RFFactor:
     Description: Replication factor to create YugaByte DB cluster by defult it is set to 3.
     Type: String
@@ -34,12 +34,9 @@ Mappings:
       CIDR: "10.0.1.0/24"
     Public2:
       CIDR: "10.0.2.0/24"
-  YugaByteConfig:
-    Edition: 
-      Value: "ce"
-    Download:
-      URL: "https://downloads.yugabyte.com"
 
+Conditions:
+  YBVersion: !Equals [!Ref DBVersion, '1.3.0.0']
 
 Resources:
   VPC:
@@ -300,7 +297,9 @@ Resources:
               group: ec2-user    
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
+              command: !Sub
+                 - bash /home/ec2-user/install_software.sh ${version}
+                 - { version: !Ref DBVersion} 
             02_Create_universe:
               command: !Sub 
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
@@ -373,10 +372,12 @@ Resources:
               group: ec2-user 
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
+              command: !Sub
+                 - bash /home/ec2-user/install_software.sh ${version}
+                 - { version: !Ref DBVersion}  
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
+                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
       ImageId: !Ref LatestAmiId
@@ -408,7 +409,7 @@ Resources:
 
   YugaByteNode2:
     Type: 'AWS::EC2::Instance'
-    DependsOn: PublicRoute
+    DependsOn: [PublicRoute, YugaByteNode0, YugaByteNode1]
     CreationPolicy:
       ResourceSignal:
         Count: '1'
@@ -452,13 +453,15 @@ Resources:
               group: ec2-user     
           commands:
             01_Install_YugaByte_DB:
-              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
+              command:  !Sub
+                 - bash /home/ec2-user/install_software.sh ${version}
+                 - { version: !Ref DBVersion}  
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
+                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
                 - { RF: !Ref RFFactor }
-            03_Run_initdb:
-              command: bash /home/ec2-user/init_ysql.sh    
+            03_Run_initdb: 
+              command: !If [YBVersion, '' , 'bash /home/ec2-user/init_ysql.sh']   
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType

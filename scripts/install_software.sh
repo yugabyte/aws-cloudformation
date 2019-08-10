@@ -8,16 +8,11 @@
 
 YB_HOME=/home/ec2-user/yugabyte-db
 
-if [[ $# -eq 3 ]]; then
-   YB_EDITION=$1
-   YB_VERSION=$2
-   YB_DOWNLOAD_LOCATION=$3
-   if [[ "${YB_EDITION}" == "ce" ]]; then
-      YB_PACKAGE_URL="${YB_DOWNLOAD_LOCATION}/yugabyte-${YB_EDITION}-${YB_VERSION}-linux.tar.gz"
-   fi
-else
-   YB_VERSION=1.2.8.0
+YB_VERSION=$1
+if [[ "${YB_VERSION}" < 1.3.0.0 ]]; then
    YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-ce-${YB_VERSION}-linux.tar.gz"
+else
+   YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-${YB_VERSION}-linux.tar.gz"
 fi
 YB_PACKAGE_NAME="${YB_PACKAGE_URL##*/}"
 
