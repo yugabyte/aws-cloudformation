@@ -36,8 +36,8 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
     $ aws cloudformation create-stack 
             --stack-name <your-stack-name> 
             --template-body yugabyte_cloudformation.yaml 
-            --parameters DBVersion=1.2.8.0,
-                         KeyName=<you-ssh-key-name>
+            --parameters ParameterKey=DBVersion,ParameterValue=1.3.1.0,
+                         ParameterKey=KeyName,ParameterValue=<you-ssh-key-name>
     ```
   - Wait until the creation of all resources is complete.
   - Once the cloudformation stack creation is complete, you can describe it as shown below.
