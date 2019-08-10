@@ -60,5 +60,3 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
   -  Add a tag to your stack and choose IAM role if required. Click on next.
   -  Review the CloudFormation stack. If everything looks good, click on create stack button. 
   -  Once stack creation gets compleated, you can access the YugaByte DB admin from URL you get in the stack output section. 
- 
-
