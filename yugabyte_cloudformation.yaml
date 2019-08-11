@@ -35,9 +35,6 @@ Mappings:
     Public2:
       CIDR: "10.0.2.0/24"
 
-Conditions:
-  YBVersion: !Equals [!Ref DBVersion, '1.3.0.0']
-
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
@@ -446,11 +443,6 @@ Resources:
               mode: '0755'
               owner: ec2-user
               group: ec2-user 
-            /home/ec2-user/init_ysql.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/init_ysql.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user     
           commands:
             01_Install_YugaByte_DB:
               command:  !Sub
@@ -460,8 +452,6 @@ Resources:
               command: !Sub 
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
                 - { RF: !Ref RFFactor }
-            03_Run_initdb: 
-              command: !If [YBVersion, '' , 'bash /home/ec2-user/init_ysql.sh']   
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
