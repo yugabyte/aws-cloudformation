@@ -24,7 +24,8 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
     - US East (Ohio)
 
 # Usage
-- # Deploying From AWS Command Line
+
+## Deploying From AWS Command Line
   - Clone this repo.
     ```
     $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
@@ -45,7 +46,7 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
     ```
     In output you will get the VPC id and YugaByte DB admin URL.
     
-- # Deploying From AWS console 
+## Deploying From AWS console 
   - Clone this repo.
      ```
      $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
