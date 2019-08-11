@@ -1,47 +1,16 @@
 # AWS CloudFormation
 
-A CloudFormation template to deploy YugaByte DB cluster on AWS. It will create a VPC with three public subnets with one YugaByte node in each subnet. 
+This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster on AWS. It does the following:
+* Creates a VPC with three public subnets
+* Creates an instance in each subnet
+  * Note that the instances that get created use Amazon Linux 1 as the OS.
+* Deploys a YugaByte DB cluster across these three nodes
 
-# Usage
-- # For AWS Command Line
-  - First, git clone the repo. <br/>
-     ``
-        $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
-    ``    
-  - change current directory to cloned git repo directory
-  - Use aws cli to create cloudformation template <br/> 
-    `` $ aws cloudformation create-stack 
-            --stack-name <your-stack-name> 
-            --template-body yugabyte_cloudformation.yaml 
-            --parameters DBVersion=1.2.8.0,
-                      KeyName=<you-ssh-key-name>
-    ``
-  - Wait till all resource creation get complete.
-  - Once cloudformation stack get completed we can see output using folwing comand. <br/>
-    ``
-        $ aws cloudformation describe-stacks --stack-name <your-stack-name>
-    ``  
-    In output you will get the VPC id and YugabByte DB admin URL. 
-- # For AWS console 
-  - First, git clone the repo. <br/>
-     ``
-        $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
-    ``
-  - Login to aws console and navigate to CloudFormation service dashboard.
-  - Click on create stack button.
-  - Select 'Template is ready' in Prepare template section and select 'upload a template file ' in Specify template section.
-  - Now click on 'choose file' button in specify template section and upload the **yugabyte_cloudforamtion.yaml** file and click on next button.
-  -  Specify your stack name and parameters for the stack and click on next.
-  -  Add a tag to your stack and choose IAM role if required and click on next.
-  -  Review the CloudFormation stack and click on create stack button. 
-  -  Once stack creation gets compleated, you can access the YugaByte DB admin from URL you get in the stack output section. 
- 
-
-# Limitations
-- As of now, we are supporting Amazon Linux 1 for YugaByte DB.
-- The selected region must have availability zone three or more because this template creates 3 public subnets in three different availability zone.
-- Make sure your availability zone support the instance type you selected for your YugaByte DB node. 
-- Right now following region is supported by this template. 
+# Pre-Flight Checks
+- Make sure that the selected region has three or more AZs.
+  - This allows this template creates 3 public subnets in three different availability zone.
+- Make sure your AZ supports the instance type specified. 
+- As of now, the following regions are supported by this template:
     - EU (Ireland)
     - EU (London)
     - EU (Paris)
@@ -53,3 +22,42 @@ A CloudFormation template to deploy YugaByte DB cluster on AWS. It will create a
     - Asia Pacific (Mumbai) 
     - US West (Oregon)
     - US East (Ohio)
+
+# Usage
+- # Deploying From AWS Command Line
+  - Clone this repo.
+    ```
+    $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
+    ```
+  - Change current directory to cloned git repo directory
+  - Use aws cli to create cloudformation template <br/> 
+    ```
+    $ aws cloudformation create-stack 
+            --stack-name <your-stack-name> 
+            --template-body yugabyte_cloudformation.yaml 
+            --parameters DBVersion=1.2.8.0,
+                         KeyName=<you-ssh-key-name>
+    ```
+  - Wait until the creation of all resources is complete.
+  - Once the cloudformation stack creation is complete, you can describe it as shown below.
+    ```
+    $ aws cloudformation describe-stacks --stack-name <your-stack-name>
+    ```
+    In output you will get the VPC id and YugaByte DB admin URL.
+    
+- # Deploying From AWS console 
+  - Clone this repo.
+     ```
+     $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
+     ```
+  - Login to aws console and navigate to CloudFormation service dashboard.
+  - Click on create stack button.
+  - Select `Template is ready` in prepare template section.
+  - Select `Upload a template file` in specify template section.
+  - Click `choose file` button in specify template section and upload the `yugabyte_cloudforamtion.yaml` file. Click on the next button.
+  -  Specify your stack name and parameters for the stack. Click on next.
+  -  Add a tag to your stack and choose IAM role if required. Click on next.
+  -  Review the CloudFormation stack. If everything looks good, click on create stack button. 
+  -  Once stack creation gets compleated, you can access the YugaByte DB admin from URL you get in the stack output section. 
+ 
+
