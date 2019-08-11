@@ -480,11 +480,26 @@ Resources:
             VolumeType: "gp2"            
 
 Outputs:
-  VPCId:
-    Description: VPCId of VPC
+  VPC:
+    Description: YugaByte DB VPC
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::Region}-${AWS::StackName}-VPC'
-  YugaByteUI:
+  SecurityGroup:
+    Description: YugaByte DB Node Security Group
+    Value: !Ref YugaByteNodeSG
+  UI:
     Description: URL to access YugaByte DB Admin Portal
     Value: !Join [ "", [ "http://", !GetAtt YugaByteNode0.PublicDnsName, ":7000" ] ]
+  JDBC:
+    Description: JDBC Connect string for YugaByte DB
+    Value: !Join [ "", ["postgresql://postgres@", !GetAtt YugaByteNode0.PublicDnsName, ":5433" ] ]
+  YSQL:
+    Description: YSQL connect string for YugaByte DB
+    Value: !Join [ " ", ["psql -U postgres -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 5433" ] ]
+  YCQL:
+    Description: YCQL connect string for YugaByte DB
+    Value: !Join [ " ", ["cqlsh", !GetAtt YugaByteNode0.PublicDnsName, "9042" ] ]
+  YEDIS:
+    Description: YEDIS connect string for YugaByte DB
+    Value: !Join [ " ", ["redis-cli -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 6379" ] ]
