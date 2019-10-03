@@ -278,7 +278,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0a126976f9b38a996
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -332,7 +332,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0a126976f9b38a996
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -387,7 +387,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0a126976f9b38a996
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
