@@ -20,9 +20,6 @@ Parameters:
     Default: "c5.xlarge"
     AllowedValues: ["c5.xlarge", "c5.2xlarge"]
     ConstraintDescription: "must be a valid EC2 instance type."
-  LatestAmiId:
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
 
 Mappings: 
   SubnetConfig:
@@ -271,27 +268,6 @@ Resources:
             yum:
               git: []
         Configure:
-          files:
-            /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
-            /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
           commands:
             01_Install_YugaByte_DB:
               command: !Sub
@@ -302,7 +278,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: !Ref LatestAmiId
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -346,27 +322,6 @@ Resources:
             yum:
               git: []
         Configure:
-          files:
-            /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
-            /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
           commands:
             01_Install_YugaByte_DB:
               command: !Sub
@@ -377,7 +332,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: !Ref LatestAmiId
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -422,27 +377,6 @@ Resources:
             yum:
               git: []
         Configure:
-          files:
-            /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
-            /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user
-            /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
-              mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
           commands:
             01_Install_YugaByte_DB:
               command:  !Sub
@@ -453,7 +387,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: !Ref LatestAmiId
+      ImageId: ami-0dcb9287ce4b48a52
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
