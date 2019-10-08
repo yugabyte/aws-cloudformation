@@ -180,11 +180,17 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: "0.0.0.0/0"
+          CidrIp: !FindInMap
+            - SubnetConfig
+            - VPC
+            - CIDR
         - IpProtocol: tcp
           FromPort: 7000
           ToPort: 7000
-          CidrIp: "0.0.0.0/0"
+          CidrIp: !FindInMap
+            - SubnetConfig
+            - VPC
+            - CIDR
         - IpProtocol: tcp
           FromPort: 7100
           ToPort: 7100
@@ -195,7 +201,10 @@ Resources:
         - IpProtocol: tcp
           FromPort: 9000
           ToPort: 9000
-          CidrIp: "0.0.0.0/0"
+          CidrIp: !FindInMap
+            - SubnetConfig
+            - VPC
+            - CIDR
         - IpProtocol: tcp
           FromPort: 9100
           ToPort: 9100
@@ -278,7 +287,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0dcb9287ce4b48a52
+      ImageId: ami-07cbf6a04cc649057
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -294,7 +303,6 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
-            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode0 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode0 --region ${AWS::Region}
       BlockDeviceMappings:
@@ -332,7 +340,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0dcb9287ce4b48a52
+      ImageId: ami-07cbf6a04cc649057
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -348,7 +356,6 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
-            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode1 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode1 --region ${AWS::Region}
       BlockDeviceMappings:
@@ -387,7 +394,7 @@ Resources:
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-0dcb9287ce4b48a52
+      ImageId: ami-07cbf6a04cc649057
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -403,7 +410,6 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
-            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode2 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode2 --region ${AWS::Region}
       BlockDeviceMappings:
