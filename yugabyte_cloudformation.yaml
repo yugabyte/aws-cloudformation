@@ -3,9 +3,9 @@ Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default avai
 
 Parameters: 
   DBVersion:
-    Description: Default YugaByte DB version is 1.3.0.0
+    Description: Default YugaByte DB version is 1.2.8.0
     Type: String
-    Default: "1.3.0.0"
+    Default: "1.2.8.0"
   RFFactor:
     Description: Replication factor to create YugaByte DB cluster by defult it is set to 3.
     Type: String
@@ -20,6 +20,9 @@ Parameters:
     Default: "c5.xlarge"
     AllowedValues: ["c5.xlarge", "c5.2xlarge"]
     ConstraintDescription: "must be a valid EC2 instance type."
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
 
 Mappings: 
   SubnetConfig:
@@ -31,6 +34,12 @@ Mappings:
       CIDR: "10.0.1.0/24"
     Public2:
       CIDR: "10.0.2.0/24"
+  YugaByteConfig:
+    Edition: 
+      Value: "ce"
+    Download:
+      URL: "https://downloads.yugabyte.com"
+
 
 Resources:
   VPC:
@@ -180,17 +189,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: !FindInMap
-            - SubnetConfig
-            - VPC
-            - CIDR
+          CidrIp: "0.0.0.0/0"
         - IpProtocol: tcp
           FromPort: 7000
           ToPort: 7000
-          CidrIp: !FindInMap
-            - SubnetConfig
-            - VPC
-            - CIDR
+          CidrIp: "0.0.0.0/0"
         - IpProtocol: tcp
           FromPort: 7100
           ToPort: 7100
@@ -201,10 +204,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 9000
           ToPort: 9000
-          CidrIp: !FindInMap
-            - SubnetConfig
-            - VPC
-            - CIDR
+          CidrIp: "0.0.0.0/0"
         - IpProtocol: tcp
           FromPort: 9100
           ToPort: 9100
@@ -277,17 +277,36 @@ Resources:
             yum:
               git: []
         Configure:
+          files:
+            /home/ec2-user/install_software.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user        
+            /home/ec2-user/create_universe.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/start_master.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/start_tserver.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user    
           commands:
             01_Install_YugaByte_DB:
-              command: !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion} 
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub 
                 - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-07cbf6a04cc649057
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -303,6 +322,7 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode0 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode0 --region ${AWS::Region}
       BlockDeviceMappings:
@@ -330,17 +350,36 @@ Resources:
             yum:
               git: []
         Configure:
+          files:
+            /home/ec2-user/install_software.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/create_universe.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user    
+            /home/ec2-user/start_master.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/start_tserver.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user 
           commands:
             01_Install_YugaByte_DB:
-              command: !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion}  
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
+                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
     Properties:
-      ImageId: ami-07cbf6a04cc649057
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -356,6 +395,7 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode1 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode1 --region ${AWS::Region}
       BlockDeviceMappings:
@@ -368,7 +408,7 @@ Resources:
 
   YugaByteNode2:
     Type: 'AWS::EC2::Instance'
-    DependsOn: [PublicRoute, YugaByteNode0, YugaByteNode1]
+    DependsOn: PublicRoute
     CreationPolicy:
       ResourceSignal:
         Count: '1'
@@ -384,17 +424,43 @@ Resources:
             yum:
               git: []
         Configure:
+          files:
+            /home/ec2-user/install_software.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user        
+            /home/ec2-user/create_universe.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/start_master.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user
+            /home/ec2-user/start_tserver.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user 
+            /home/ec2-user/init_ysql.sh:
+              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/init_ysql.sh"
+              mode: '0755'
+              owner: ec2-user
+              group: ec2-user     
           commands:
             01_Install_YugaByte_DB:
-              command:  !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion}  
+              command:  bash /home/ec2-user/install_software.sh !FindInMap [ YugaByteConfig, Edition, Value ] !Ref DBVersion !FindInMap [ YugaByteConfig, Download, URL ]
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
+                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
                 - { RF: !Ref RFFactor }
+            03_Run_initdb:
+              command: bash /home/ec2-user/init_ysql.sh    
     Properties:
-      ImageId: ami-07cbf6a04cc649057
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       NetworkInterfaces : 
@@ -410,6 +476,7 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource YugaByteNode2 --configsets InstallAndRun --region ${AWS::Region}
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource YugaByteNode2 --region ${AWS::Region}
       BlockDeviceMappings:
@@ -420,26 +487,11 @@ Resources:
             VolumeType: "gp2"            
 
 Outputs:
-  VPC:
-    Description: YugaByte DB VPC
+  VPCId:
+    Description: VPCId of VPC
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::Region}-${AWS::StackName}-VPC'
-  SecurityGroup:
-    Description: YugaByte DB Node Security Group
-    Value: !Ref YugaByteNodeSG
-  UI:
+  YugaByteUI:
     Description: URL to access YugaByte DB Admin Portal
     Value: !Join [ "", [ "http://", !GetAtt YugaByteNode0.PublicDnsName, ":7000" ] ]
-  JDBC:
-    Description: JDBC Connect string for YugaByte DB
-    Value: !Join [ "", ["postgresql://postgres@", !GetAtt YugaByteNode0.PublicDnsName, ":5433" ] ]
-  YSQL:
-    Description: YSQL connect string for YugaByte DB
-    Value: !Join [ " ", ["psql -U postgres -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 5433" ] ]
-  YCQL:
-    Description: YCQL connect string for YugaByte DB
-    Value: !Join [ " ", ["cqlsh", !GetAtt YugaByteNode0.PublicDnsName, "9042" ] ]
-  YEDIS:
-    Description: YEDIS connect string for YugaByte DB
-    Value: !Join [ " ", ["redis-cli -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 6379" ] ]
