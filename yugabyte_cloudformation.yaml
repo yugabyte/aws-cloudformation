@@ -7,7 +7,7 @@ Parameters:
     Type: String
     Default: "2.1.1.0"
   RFFactor:
-    Description: Replication factor to create YugaByte DB cluster by defult it is set to 3.
+    Description: Replication factor to create YugaByte DB cluster by default it is set to 3.
     Type: String
     Default: "3"
   KeyName:
