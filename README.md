@@ -24,6 +24,8 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
     - US East (Ohio)
 
 # Usage
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://go.aws/33qDE12)
+
 
 ## Deploying From AWS Command Line
   - Clone this repo.
