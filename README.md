@@ -28,15 +28,15 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
 ## Deploying From AWS Command Line
   - Clone this repo.
     ```
-    $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
+    $ git clone https://github.com/yugabyte/aws-cloudformation.git 
     ```
   - Change current directory to cloned git repo directory
   - Use aws cli to create cloudformation template <br/> 
     ```
     $ aws cloudformation create-stack 
             --stack-name <your-stack-name> 
-            --template-body yugabyte_cloudformation.yaml 
-            --parameters ParameterKey=DBVersion,ParameterValue=1.3.1.0,
+            --template-body file://yugabyte_cloudformation.yaml 
+            --parameters ParameterKey=DBVersion,ParameterValue=2.0.1.0,
                          ParameterKey=KeyName,ParameterValue=<you-ssh-key-name>
     ```
   - Wait until the creation of all resources is complete.
@@ -49,7 +49,7 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
 ## Deploying From AWS console 
   - Clone this repo.
      ```
-     $ git clone https://github.com/YugaByte/yugabytedb-cloudformation.git
+     $ git clone https://github.com/yugabyte/aws-cloudformation.git 
      ```
   - Login to aws console and navigate to CloudFormation service dashboard.
   - Click on create stack button.
