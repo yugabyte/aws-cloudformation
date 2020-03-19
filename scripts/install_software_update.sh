@@ -51,6 +51,31 @@ root	hard	nproc	12000
 EOF
 
 sudo cp /tmp/99-yugabyte-limits.conf /etc/security/limits.d/99-yugabyte-limits.conf
+
+cat > /tmp/new-system-limits.conf <<EOF
+* soft 	core	unlimited
+* hard	core 	unlimited
+* soft	data	unlimited
+* hard	data	unlimited
+* soft	priority	0
+* hard	priority	0
+*	soft	fsize	unlimited
+*	hard	fsize	unlimited
+*	soft	sigpending	119934
+*	hard	sigpending	119934
+*	soft    memlock	64
+*	hard 	memlock	64
+*	soft  	nofile	1048576
+*	hard  	nofile	1048576
+*	soft	stack	8192
+*	hard	stack	8192
+*	soft	rtprio	0
+*	hard	rtprio	0
+*	soft	nproc	12000
+*	hard	nproc	12000
+EOF
+
+sudo cp /tmp/new-system-limits.conf /etc/security/limits.conf
 ###############################################################################
 # Download and install the software.
 ###############################################################################
