@@ -85,6 +85,8 @@ echo "--master_addresses=${YB_MASTER_ADDRESSES}" >> ${YB_HOME}/master/conf/serve
 echo "--tserver_master_addrs=${YB_MASTER_ADDRESSES}" >> ${YB_HOME}/tserver/conf/server.conf
 echo "--replication_factor=${RF}" >> ${YB_HOME}/master/conf/server.conf
 echo "--replication_factor=${RF}" >> ${YB_HOME}/tserver/conf/server.conf
+echo "--default_memory_limit_to_ram_ratio=0.35" >> ${YB_HOME}/master/conf/server.conf
+echo "--default_memory_limit_to_ram_ratio=0.6" >> ${YB_HOME}/tserver/conf/server.conf
 
 ###############################################################################
 # Setup placement information if multi-AZ
@@ -99,8 +101,6 @@ echo "--placement_region=${REGION}" >> ${YB_HOME}/tserver/conf/server.conf
 echo "--placement_zone=${INSTANCE_ZONE}" >> ${YB_HOME}/master/conf/server.conf
 echo "--placement_zone=${INSTANCE_ZONE}" >> ${YB_HOME}/tserver/conf/server.conf
 echo "--use_initial_sys_catalog_snapshot" >> ${YB_HOME}/master/conf/server.conf
-
-
 
 ###############################################################################
 # Setup YSQL proxies across all nodes
