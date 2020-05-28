@@ -22,7 +22,10 @@ Parameters:
     ConstraintDescription: "must be a valid EC2 instance type."
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  SshUser:
+    Type: String
+    Default: "ec2-user"
 
 Mappings: 
   SubnetConfig:
@@ -273,34 +276,34 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
+              owner: !Ref SshUser
+              group: !Ref SshUser    
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
             01_Install_YugaByte_DB:
               command: !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion} 
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser } 
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet0.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
@@ -348,34 +351,34 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
             01_Install_YugaByte_DB:
               command: !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion}  
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }  
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet1.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet1.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
@@ -424,34 +427,34 @@ Resources:
         Configure:
           files:
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
+              owner: !Ref SshUser
+              group: !Ref SshUser    
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
             01_Install_YugaByte_DB:
               command:  !Sub
-                 - bash /home/ec2-user/install_software.sh ${version}
-                 - { version: !Ref DBVersion}  
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }  
             02_Create_universe:
               command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet2.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
