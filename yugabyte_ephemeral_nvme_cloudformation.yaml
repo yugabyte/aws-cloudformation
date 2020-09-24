@@ -1,30 +1,39 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default availability zone is 3 and replication factor is also 3)"
+Description: |
+  Simple deployment of YugabyteDB cluster in multi-AZ (default
+  availability zone is 3 and replication factor is also 3). This uses
+  the ephemeral NVMe based instance store volumes to store the data.
 
-Parameters: 
+Parameters:
   DBVersion:
-    Description: Default YugaByte DB version is 2.0.10.0
+    Description: Default YugabyteDB version is 2.3.2.0
     Type: String
-    Default: "2.0.10.0"
+    Default: "2.3.2.0"
   RFFactor:
-    Description: Replication factor to create YugaByte DB cluster by defult it is set to 3.
+    Description: Replication factor to create YugabyteDB cluster by default it is set to 3.
     Type: String
     Default: "3"
   KeyName:
-    Description: 'Name of Key which is required for ssh to YugaByte DB node'
+    Description: 'Name of Key which is required for ssh to YugabyteDB node'
     Type: "AWS::EC2::KeyPair::KeyName"
     ConstraintDescription : "must be the name of an existing EC2 KeyPair."
   InstanceType:
-    Description: 'Type of Instance for YugaByte DB cluster node'
+    Description: |
+      Type of Instance for YugabyteDB cluster node, NVMe based
+      instance store volumes (ephemeral) will be used to store the
+      data if those are available.
     Type: "String"
-    Default: "i3.xlarge"
-    AllowedValues: ["i3.xlarge", "i3.2xlarge"]
+    Default: "c5d.xlarge"
+    AllowedValues: ["c5d.xlarge", "c5d.2xlarge", "i3.xlarge", "i3.2xlarge"]
     ConstraintDescription: "must be a valid EC2 instance type."
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  SshUser:
+    Type: String
+    Default: "ec2-user"
 
-Mappings: 
+Mappings:
   SubnetConfig:
     VPC:
       CIDR: "10.0.0.0/16"
@@ -52,15 +61,15 @@ Resources:
           Value: Public
         - Key: Name
           Value: !Ref "AWS::StackName"
-  
+
   PublicSubnet0:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 0
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public0
         - CIDR
@@ -71,7 +80,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-0'
@@ -79,10 +88,10 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 1
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public1
         - CIDR
@@ -93,7 +102,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-1'
@@ -101,10 +110,10 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 2
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public2
         - CIDR
@@ -115,7 +124,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-2'
@@ -128,7 +137,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-IGW'
@@ -147,7 +156,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-route-table'
@@ -176,7 +185,7 @@ Resources:
   YugaByteNodeSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'YugaByte Node Security Group' 
+      GroupDescription: 'YugaByte Node Security Group'
       GroupName: 'YugaByteNodeSG'
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -237,14 +246,14 @@ Resources:
         SubnetId: !Ref PublicSubnet0
         GroupSet:
           - !Ref YugaByteNodeSG
-  
+
   Node1NetInt:
       Type: 'AWS::EC2::NetworkInterface'
       Properties:
         SubnetId: !Ref PublicSubnet1
         GroupSet:
           - !Ref YugaByteNodeSG
-  
+
   Node2NetInt:
       Type: 'AWS::EC2::NetworkInterface'
       Properties:
@@ -273,46 +282,49 @@ Resources:
               xfsprogs: []
         Configure:
           files:
+            /home/ec2-user/initialize_nvme_instance_store.sh:
+              source: "https://raw.githubusercontent.com/yugabyte/aws-cloudformation/master/scripts/initialize_nvme_instance_store.sh"
+              mode: '0755'
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/yugabyte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
-            01_Format_nvme:
-              command: "sudo mkfs -t xfs /dev/nvme0n1"
-            02_Datadir_create:
-              command: "sudo mkdir /home/ec2-user/yugabyte-db"
-            03_Mount_nvme:
-              command: "sudo mount /dev/nvme0n1 /home/ec2-user/yugabyte-db"
-            04_Install_YugaByte_DB:
+            01_Initialize_NVMe:
               command: !Sub
-                - bash /home/ec2-user/install_software.sh ${version}
-                - { version: !Ref DBVersion} 
-            05_Create_universe:
-              command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/initialize_nvme_instance_store.sh"
+                 - { SSH_USER: !Ref SshUser }
+            02_Install_YugaByte_DB:
+              command: !Sub
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
+            03_Create_universe:
+              command: !Sub
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet0.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node0NetInt
           DeviceIndex: 0
       Tags:
@@ -334,7 +346,7 @@ Resources:
             VolumeSize: 50
             DeleteOnTermination: "true"
             VolumeType: "gp2"
-      
+
   YugaByteNode1:
     Type: 'AWS::EC2::Instance'
     DependsOn: PublicRoute
@@ -355,46 +367,49 @@ Resources:
               xfsprogs: []
         Configure:
           files:
+            /home/ec2-user/initialize_nvme_instance_store.sh:
+              source: "https://raw.githubusercontent.com/yugabyte/aws-cloudformation/master/scripts/initialize_nvme_instance_store.sh"
+              mode: '0755'
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/yugabyte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user    
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
-            01_Format_nvme:
-              command: "sudo mkfs -t xfs /dev/nvme0n1"
-            02_Datadir_create:
-              command: "sudo mkdir /home/ec2-user/yugabyte-db"
-            03_Mount_nvme:
-              command: "sudo mount /dev/nvme0n1 /home/ec2-user/yugabyte-db"
-            04_Install_YugaByte_DB:
+            01_Initialize_NVMe:
               command: !Sub
-                - bash /home/ec2-user/install_software.sh ${version}
-                - { version: !Ref DBVersion} 
-            05_Create_universe:
-              command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/initialize_nvme_instance_store.sh"
+                 - { SSH_USER: !Ref SshUser }
+            02_Install_YugaByte_DB:
+              command: !Sub
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
+            03_Create_universe:
+              command: !Sub
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet1.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node1NetInt
           DeviceIndex: 0
       Tags:
@@ -415,7 +430,7 @@ Resources:
           Ebs:
             VolumeSize: 50
             DeleteOnTermination: "true"
-            VolumeType: "gp2"            
+            VolumeType: "gp2"
 
 
   YugaByteNode2:
@@ -438,46 +453,49 @@ Resources:
               xfsprogs: []
         Configure:
           files:
+            /home/ec2-user/initialize_nvme_instance_store.sh:
+              source: "https://raw.githubusercontent.com/yugabyte/aws-cloudformation/master/scripts/initialize_nvme_instance_store.sh"
+              mode: '0755'
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/install_software.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/install_software.sh"
+              source: "https://raw.githubusercontent.com/yugabyte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user        
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/create_universe.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_master.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_master.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_master.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user
+              owner: !Ref SshUser
+              group: !Ref SshUser
             /home/ec2-user/start_tserver.sh:
-              source: "https://raw.githubusercontent.com/YugaByte/aws-cloudformation/master/scripts/start_tserver.sh"
+              source: "https://raw.githubusercontent.com/YugaByte/utilities/master/scripts/start_tserver.sh"
               mode: '0755'
-              owner: ec2-user
-              group: ec2-user 
+              owner: !Ref SshUser
+              group: !Ref SshUser
           commands:
-            01_Format_nvme:
-              command: "sudo mkfs -t xfs /dev/nvme0n1"
-            02_Datadir_create:
-              command: "sudo mkdir /home/ec2-user/yugabyte-db"
-            03_Mount_nvme:
-              command: "sudo mount /dev/nvme0n1 /home/ec2-user/yugabyte-db"
-            04_Install_YugaByte_DB:
+            01_Initialize_NVMe:
               command: !Sub
-                - bash /home/ec2-user/install_software.sh ${version}
-                - { version: !Ref DBVersion} 
-            05_Create_universe:
-              command: !Sub 
-                - bash /home/ec2-user/create_universe.sh AWS ${AWS::Region} ${RF} ${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress} ${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone} ${PublicSubnet0.AvailabilityZone}
-                - { RF: !Ref RFFactor }
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/initialize_nvme_instance_store.sh"
+                 - { SSH_USER: !Ref SshUser }
+            02_Install_YugaByte_DB:
+              command: !Sub
+                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
+            03_Create_universe:
+              command: !Sub
+                - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet2.AvailabilityZone} ${SSH_USER}"
+                - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node2NetInt
           DeviceIndex: 0
       Tags:
@@ -498,29 +516,29 @@ Resources:
           Ebs:
             VolumeSize: 50
             DeleteOnTermination: "true"
-            VolumeType: "gp2"            
+            VolumeType: "gp2"
 
 Outputs:
   VPC:
-    Description: YugaByte DB VPC
+    Description: YugabyteDB VPC
     Value: !Ref VPC
     Export:
       Name: !Sub '${AWS::Region}-${AWS::StackName}-VPC'
   SecurityGroup:
-    Description: YugaByte DB Node Security Group
+    Description: YugabyteDB Node Security Group
     Value: !Ref YugaByteNodeSG
   UI:
-    Description: URL to access YugaByte DB Admin Portal
+    Description: URL to access YugabyteDB Admin Portal
     Value: !Join [ "", [ "http://", !GetAtt YugaByteNode0.PublicDnsName, ":7000" ] ]
   JDBC:
-    Description: JDBC Connect string for YugaByte DB
-    Value: !Join [ "", ["postgresql://postgres@", !GetAtt YugaByteNode0.PublicDnsName, ":5433" ] ]
+    Description: JDBC Connect string for YugabyteDB
+    Value: !Join [ "", ["postgresql://yugabyte@", !GetAtt YugaByteNode0.PublicDnsName, ":5433" ] ]
   YSQL:
-    Description: YSQL connect string for YugaByte DB
-    Value: !Join [ " ", ["psql -U postgres -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 5433" ] ]
+    Description: YSQL connect string for YugabyteDB
+    Value: !Join [ " ", ["ysqlsh -U yugabyte -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 5433" ] ]
   YCQL:
-    Description: YCQL connect string for YugaByte DB
-    Value: !Join [ " ", ["cqlsh", !GetAtt YugaByteNode0.PublicDnsName, "9042" ] ]
+    Description: YCQL connect string for YugabyteDB
+    Value: !Join [ " ", ["ycqlsh", !GetAtt YugaByteNode0.PublicDnsName, "9042" ] ]
   YEDIS:
-    Description: YEDIS connect string for YugaByte DB
+    Description: YEDIS connect string for YugabyteDB
     Value: !Join [ " ", ["redis-cli -h", !GetAtt YugaByteNode0.PublicDnsName, "-p 6379" ] ]
