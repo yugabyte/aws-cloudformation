@@ -3,9 +3,9 @@ Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default avai
 
 Parameters: 
   DBVersion:
-    Description: Default YugaByte DB version is 2.3.1.0
+    Description: Default YugabyteDB version is 2.3.2.0
     Type: String
-    Default: "2.3.1.0"
+    Default: "2.3.2.0"
   RFFactor:
     Description: Replication factor to create YugaByte DB cluster by default it is set to 3.
     Type: String
