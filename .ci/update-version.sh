@@ -3,7 +3,8 @@
 set -o errexit -o pipefail
 
 # Following files will modify to update YugabyteDB version
-readonly TEMPLATE_FILE="yugabyte_cloudformation.yaml"
+readonly TEMPLATE_FILES=("yugabyte_cloudformation.yaml"
+			 "yugabyte_ephemeral_nvme_cloudformation.yaml")
 readonly README="README.md"
 
 # version_gt compares the given two versions.
@@ -29,7 +30,7 @@ if ! [[ "${release_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 # Current Version in yugabyte_cloudformation.yaml
-current_version="$(grep -A 3 "DBVersion:" "${TEMPLATE_FILE}" | grep "Default:" | cut -d '"' -f 2)"
+current_version="$(grep -A 3 "DBVersion:" "${TEMPLATE_FILES[0]}" | grep "Default:" | cut -d '"' -f 2)"
 echo "Current Release Version - ${current_version}"
 
 # Version comparison
@@ -39,16 +40,18 @@ if ! version_gt "${release_version}" "${current_version}" ; then
 fi
 
 # Version will be updated at following location in the following files-
-#  1. yugabyte_cloudformation.yaml
-#    1.1. Description: Default YugaByte DB version is 2.1.1.0
+#  1. yugabyte_cloudformation.yaml, yugabyte_ephemeral_nvme_cloudformation.yaml
+#    1.1. Description: Default YugabyteDB version is 2.1.1.0
 #    1.2. Default: "2.1.5.0"
 #  2. README.md
 #    2.1. ParameterValue=2.0.1.0,
 
 echo "Updating..."
 
-# Update Version in yugabyte_cloudformation.yaml
-sed -i -E "/DBVersion:/,+3 s/[0-9]+.[0-9]+.[0-9]+.[0-9]+/"${release_version}"/g" "${TEMPLATE_FILE}"
+# Update Version in template files
+for template in "${TEMPLATE_FILES[@]}"; do
+  sed -i -E "/DBVersion:/,+3 s/[0-9]+.[0-9]+.[0-9]+.[0-9]+/"${release_version}"/g" "${template}"
+done
 
 # Update Version in README.md
 sed -i -E "/ParameterKey=DBVersion/,+1 s/[0-9]+.[0-9]+.[0-9]+.[0-9]+/"${release_version}"/" "${README}"

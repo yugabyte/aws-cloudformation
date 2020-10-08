@@ -1,17 +1,19 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Simple deployment of YugaByte DB cluster in multi-AZ (default availability zone is 3 and replication factor is also 3)"
+Description: |
+  Simple deployment of YugabyteDB cluster in multi-AZ (default
+  availability zone is 3 and replication factor is also 3)
 
-Parameters: 
+Parameters:
   DBVersion:
-    Description: Default YugaByte DB version is 2.3.1.0
+    Description: Default YugabyteDB version is 2.3.2.0
     Type: String
-    Default: "2.3.1.0"
+    Default: "2.3.2.0"
   RFFactor:
-    Description: Replication factor to create YugaByte DB cluster by default it is set to 3.
+    Description: Replication factor to create YugabyteDB cluster by default it is set to 3.
     Type: String
     Default: "3"
   KeyName:
-    Description: 'Name of Key which is required for ssh to YugaByte DB node'
+    Description: 'Name of Key which is required for ssh to YugabyteDB node'
     Type: "AWS::EC2::KeyPair::KeyName"
     ConstraintDescription : "must be the name of an existing EC2 KeyPair."
   InstanceType:
@@ -27,7 +29,7 @@ Parameters:
     Type: String
     Default: "ec2-user"
 
-Mappings: 
+Mappings:
   SubnetConfig:
     VPC:
       CIDR: "10.0.0.0/16"
@@ -55,15 +57,15 @@ Resources:
           Value: Public
         - Key: Name
           Value: !Ref "AWS::StackName"
-  
+
   PublicSubnet0:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 0
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public0
         - CIDR
@@ -74,7 +76,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-0'
@@ -82,10 +84,10 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 1
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public1
         - CIDR
@@ -96,7 +98,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-1'
@@ -104,10 +106,10 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select 
+      AvailabilityZone: !Select
         - 2
         - !GetAZs ''
-      CidrBlock: !FindInMap 
+      CidrBlock: !FindInMap
         - SubnetConfig
         - Public2
         - CIDR
@@ -118,7 +120,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-2'
@@ -131,7 +133,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-IGW'
@@ -150,7 +152,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join 
+          Value: !Join
             - ''
             - - !Ref "AWS::StackName"
               - '-public-route-table'
@@ -179,7 +181,7 @@ Resources:
   YugaByteNodeSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: 'YugaByte Node Security Group' 
+      GroupDescription: 'YugaByte Node Security Group'
       GroupName: 'YugaByteNodeSG'
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -240,14 +242,14 @@ Resources:
         SubnetId: !Ref PublicSubnet0
         GroupSet:
           - !Ref YugaByteNodeSG
-  
+
   Node1NetInt:
       Type: 'AWS::EC2::NetworkInterface'
       Properties:
         SubnetId: !Ref PublicSubnet1
         GroupSet:
           - !Ref YugaByteNodeSG
-  
+
   Node2NetInt:
       Type: 'AWS::EC2::NetworkInterface'
       Properties:
@@ -279,7 +281,7 @@ Resources:
               source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
               owner: !Ref SshUser
-              group: !Ref SshUser    
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
               source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
@@ -299,16 +301,16 @@ Resources:
             01_Install_YugaByte_DB:
               command: !Sub
                  - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
-                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser } 
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
             02_Create_universe:
-              command: !Sub 
+              command: !Sub
                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet0.AvailabilityZone} ${SSH_USER}"
                 - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node0NetInt
           DeviceIndex: 0
       Tags:
@@ -330,7 +332,7 @@ Resources:
             VolumeSize: 50
             DeleteOnTermination: "true"
             VolumeType: "gp2"
-      
+
   YugaByteNode1:
     Type: 'AWS::EC2::Instance'
     DependsOn: PublicRoute
@@ -374,16 +376,16 @@ Resources:
             01_Install_YugaByte_DB:
               command: !Sub
                  - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
-                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }  
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
             02_Create_universe:
-              command: !Sub 
+              command: !Sub
                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet1.AvailabilityZone} ${SSH_USER}"
                 - { RF: !Ref RFFactor, SSH_USER: !Ref SshUser }
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node1NetInt
           DeviceIndex: 0
       Tags:
@@ -404,7 +406,7 @@ Resources:
           Ebs:
             VolumeSize: 50
             DeleteOnTermination: "true"
-            VolumeType: "gp2"            
+            VolumeType: "gp2"
 
 
   YugaByteNode2:
@@ -430,7 +432,7 @@ Resources:
               source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/install_software.sh"
               mode: '0755'
               owner: !Ref SshUser
-              group: !Ref SshUser    
+              group: !Ref SshUser
             /home/ec2-user/create_universe.sh:
               source: "https://raw.githubusercontent.com/YugaByte/utilities/master/common_scripts/create_universe.sh"
               mode: '0755'
@@ -450,7 +452,7 @@ Resources:
             01_Install_YugaByte_DB:
               command:  !Sub
                  - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/install_software.sh ${version}"
-                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }  
+                 - { version: !Ref DBVersion, SSH_USER: !Ref SshUser }
             02_Create_universe:
               command: !Sub 
                 - bash -c "sudo -u ${SSH_USER} /home/${SSH_USER}/create_universe.sh AWS ${AWS::Region} ${RF} '${Node0NetInt.PrimaryPrivateIpAddress} ${Node1NetInt.PrimaryPrivateIpAddress} ${Node2NetInt.PrimaryPrivateIpAddress}' '${PublicSubnet0.AvailabilityZone} ${PublicSubnet1.AvailabilityZone} ${PublicSubnet2.AvailabilityZone}' ${PublicSubnet2.AvailabilityZone} ${SSH_USER}"
@@ -459,7 +461,7 @@ Resources:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      NetworkInterfaces : 
+      NetworkInterfaces :
         - NetworkInterfaceId: !Ref Node2NetInt
           DeviceIndex: 0
       Tags:
@@ -480,7 +482,7 @@ Resources:
           Ebs:
             VolumeSize: 50
             DeleteOnTermination: "true"
-            VolumeType: "gp2"            
+            VolumeType: "gp2"
 
 Outputs:
   VPC:
