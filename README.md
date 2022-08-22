@@ -1,10 +1,10 @@
 # AWS CloudFormation
 
-This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster on AWS. It does the following:
+This repo contains an AWS CloudFormation template to deploy YugabyteDB cluster on AWS. It does the following:
 * Creates a VPC with three public subnets
 * Creates an instance in each subnet
   * Note that the instances that get created use Amazon Linux 1 as the OS.
-* Deploys a YugaByte DB cluster across these three nodes
+* Deploys a YugabyteDB cluster across these three nodes
 
 # Pre-Flight Checks
 - Make sure that the selected region has three or more AZs.
@@ -46,7 +46,7 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
     ```
     $ aws cloudformation describe-stacks --stack-name <your-stack-name>
     ```
-    In output you will get the VPC id and YugaByte DB admin URL.
+    In output you will get the VPC id and YugabyteDB admin URL.
     
 ## Deploying From AWS console 
   - Clone this repo.
@@ -61,4 +61,4 @@ This repo contains an AWS CloudFormation template to deploy YugaByte DB cluster 
   -  Specify your stack name and parameters for the stack. Click on next.
   -  Add a tag to your stack and choose IAM role if required. Click on next.
   -  Review the CloudFormation stack. If everything looks good, click on create stack button. 
-  -  Once stack creation gets compleated, you can access the YugaByte DB admin from URL you get in the stack output section. 
+  -  Once stack creation gets compleated, you can access the YugabyteDB admin from URL you get in the stack output section. 
