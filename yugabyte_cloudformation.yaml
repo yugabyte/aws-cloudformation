@@ -5,9 +5,9 @@ Description: |
 
 Parameters:
   DBVersion:
-    Description: Default YugabyteDB version is 2.15.1.0-b175
+    Description: Default YugabyteDB version is 2.15.2.0-b175
     Type: String
-    Default: "2.15.1.0-b175"
+    Default: "2.15.2.0-b175"
   RFFactor:
     Description: Replication factor to create YugabyteDB cluster by default it is set to 3.
     Type: String
