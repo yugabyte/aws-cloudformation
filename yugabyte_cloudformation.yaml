@@ -5,9 +5,9 @@ Description: |
 
 Parameters:
   DBVersion:
-    Description: Default YugabyteDB version is 2024.1.3.0-b190
+    Description: Default YugabyteDB version is 2024.1.3.0-b105
     Type: String
-    Default: "2024.1.3.0-b190"
+    Default: "2024.1.3.0-b105"
   RFFactor:
     Description: Replication factor to create YugabyteDB cluster by default it is set to 3.
     Type: String
@@ -24,7 +24,7 @@ Parameters:
     ConstraintDescription: "must be a valid EC2 instance type."
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
-    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
   SshUser:
     Type: String
     Default: "ec2-user"
